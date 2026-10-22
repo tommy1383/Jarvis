@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#020a14">
-<title>Jarvis · prova</title>
+<title>Jarvis · prova 2</title>
 <style>
 :root{
   --c:#5fe3ff; --c2:#1fa9d6; --bg:#020a14; --t:#d8f6ff; --dim:#7fb3c6;
@@ -61,7 +61,7 @@ body.parla .core{animation:talk .3s ease-in-out infinite alternate}
 </style>
 </head>
 <body>
-<div class="top"><span><b>J.A.R.V.I.S.</b> prova di ascolto</span><span id="ora"></span></div>
+<div class="top"><span><b>J.A.R.V.I.S.</b> prova 2</span><span id="ora"></span></div>
 
 <div class="reactor" id="reactor" role="button" tabindex="0" aria-label="Avvia l'ascolto">
 <svg viewBox="0 0 200 200" aria-hidden="true">
@@ -85,7 +85,9 @@ body.parla .core{animation:talk .3s ease-in-out infinite alternate}
   <div class="riga" id="r-perm"><span class="pallino"></span><div><p class="nome">Permesso del microfono</p><p class="val">Controllo in corso…</p></div></div>
   <div class="riga" id="r-auto"><span class="pallino"></span><div><p class="nome">Ascolto all’apertura, senza tocchi</p><p class="val">Controllo in corso…</p></div></div>
   <div class="riga" id="r-ric"><span class="pallino"></span><div><p class="nome">Riconoscimento della voce</p><p class="val">Parla quando vedi “In ascolto”.</p></div></div>
-  <div class="riga" id="r-voce"><span class="pallino"></span><div><p class="nome">Risposta a voce automatica</p><p class="val">In attesa della prima frase.</p></div></div>
+  <div class="riga" id="r-audio"><span class="pallino"></span><div><p class="nome">Audio automatico (come la voce ElevenLabs)</p><p class="val">In attesa della prima frase.</p></div></div>
+  <div class="riga" id="r-web"><span class="pallino"></span><div><p class="nome">Audio di riserva</p><p class="val">In attesa della prima frase.</p></div></div>
+  <div class="riga" id="r-voce"><span class="pallino"></span><div><p class="nome">Voce del browser</p><p class="val">In attesa della prima frase.</p></div></div>
   <div class="riga" id="r-seg"><span class="pallino"></span><div><p class="nome">Conversazione continua</p><p class="val">In attesa della seconda frase.</p></div></div>
   <div class="verdetto" id="verdetto">Parla due volte di seguito, poi fai uno screenshot di questa schermata.</div>
 </section>
@@ -163,8 +165,8 @@ function ascolta(daTocco) {
   if (!SR) { riga("r-ric", false, "Questo browser non ha il riconoscimento vocale."); return; }
   if (stato.ascolta) return;
   var r = new SR(); stato.rec = r;
-  r.lang = "it-IT"; r.interimResults = true; r.continuous = false;
-  var testo = "", partito = false;
+  r.lang = "it-IT"; r.interimResults = true; r.continuous = true;
+  var testo = "", partito = false, silenzio = null;
   r.onstart = function () {
     partito = true; stato.ascolta = true; modo("ascolto", "In ascolto");
     $("avvia").className = "avvia";
@@ -173,7 +175,11 @@ function ascolta(daTocco) {
   };
   r.onresult = function (e) {
     testo = ""; for (var i = 0; i < e.results.length; i++) testo += e.results[i][0].transcript;
+    testo = testo.replace(/\s+/g, " ").trim();
     $("detto").className = "detto"; $("detto").textContent = "« " + testo + " »";
+    // la frase è finita quando smetti di parlare per un attimo
+    clearTimeout(silenzio);
+    silenzio = setTimeout(function () { try { r.stop(); } catch (err) {} }, 1400);
   };
   r.onerror = function (e) {
     stato.ascolta = false;
@@ -190,6 +196,7 @@ function ascolta(daTocco) {
     }
   };
   r.onend = function () {
+    clearTimeout(silenzio);
     stato.ascolta = false;
     if (!partito) return;
     if (testo) {
@@ -213,30 +220,83 @@ function ascolta(daTocco) {
   }
 }
 
-// ----- risposta a voce: verifica che possa parlare da solo -----
+// ----- risposta: prova i tre modi di emettere suono -----
+function creaTono() {
+  var sr = 22050, dur = 0.45, n = Math.floor(sr * dur), buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  function str(o, t) { for (var i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); }
+  str(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); str(8, "WAVE"); str(12, "fmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  str(36, "data"); v.setUint32(40, n * 2, true);
+  for (var i = 0; i < n; i++) {
+    var t = i / sr, inv = Math.min(1, t / 0.02, (dur - t) / 0.08);
+    var s = Math.sin(2 * Math.PI * 660 * t) * 0.5 + Math.sin(2 * Math.PI * 990 * t) * 0.25;
+    v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, s * inv * 0.6)) * 32767, true);
+  }
+  return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+}
+var urlTono = null, lettore = null;
+function provaAudio() {
+  return new Promise(function (fine) {
+    try {
+      if (!urlTono) urlTono = creaTono();
+      if (!lettore) lettore = new Audio();
+      lettore.src = urlTono;
+      var p = lettore.play();
+      if (p && p.then) p.then(function () {
+        riga("r-audio", true, "Il suono è partito da solo: la voce ElevenLabs potrà parlare senza tocchi.");
+        lettore.onended = function () { fine(true); };
+        setTimeout(function () { fine(true); }, 1500);
+      }, function (e) {
+        riga("r-audio", false, "Bloccato da Safari (" + ((e && e.name) || "errore") + ").");
+        fine(false);
+      });
+      else { riga("r-audio", null, "Risultato non chiaro."); fine(false); }
+    } catch (e) { riga("r-audio", false, "Errore: " + e.message); fine(false); }
+  });
+}
+function provaAudioWeb() {
+  return new Promise(function (fine) {
+    try {
+      var ctx = audio.ctx;
+      if (!ctx) { riga("r-web", false, "Non disponibile."); fine(false); return; }
+      if (ctx.state !== "running") { riga("r-web", false, "Fermo finché non tocchi lo schermo (" + ctx.state + ")."); fine(false); return; }
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = 880; g.gain.value = 0.0001;
+      o.connect(g); g.connect(ctx.destination);
+      var t = ctx.currentTime;
+      g.gain.exponentialRampToValueAtTime(0.25, t + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+      o.start(t); o.stop(t + 0.4);
+      riga("r-web", true, "Funziona anche senza tocchi.");
+      setTimeout(function () { fine(true); }, 500);
+    } catch (e) { riga("r-web", false, "Errore: " + e.message); fine(false); }
+  });
+}
+function provaVoce(frase) {
+  return new Promise(function (fine) {
+    if (!("speechSynthesis" in window)) { riga("r-voce", false, "Non disponibile."); fine(false); return; }
+    var u = new SpeechSynthesisUtterance(frase), partita = false;
+    u.lang = "it-IT";
+    u.onstart = function () { partita = true; modo("parla", "Risposta"); };
+    u.onend = function () { riga("r-voce", true, "Ha parlato da solo."); fine(true); };
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+    setTimeout(function () { if (!partita) { riga("r-voce", false, "Non parte senza un tocco (non ci serve: useremo ElevenLabs)."); fine(false); } }, 2500);
+  });
+}
 function rispondi(testo) {
-  var frase = stato.frasi >= 2 ? "Perfetto, anche la conversazione continua funziona." : "Ti ho sentito. Hai detto: " + testo + ". Ora dimmi un'altra frase.";
-  if (!("speechSynthesis" in window)) { riga("r-voce", false, "La voce del browser non è disponibile."); return; }
-  var u = new SpeechSynthesisUtterance(frase);
-  u.lang = "it-IT"; u.rate = 1;
-  var partita = false;
-  u.onstart = function () { partita = true; modo("parla", "Risposta"); };
-  u.onend = function () {
-    if (stato.voceOk === null) { stato.voceOk = true; riga("r-voce", true, "Ha risposto a voce da solo."); }
+  modo("parla", "Risposta");
+  var frase = stato.frasi >= 2 ? "Perfetto, anche la conversazione continua funziona." : "Ti ho sentito. Ora dimmi un'altra frase.";
+  provaAudio().then(function (ok) {
+    stato.voceOk = ok;
+    return provaAudioWeb();
+  }).then(function () {
+    return provaVoce(frase);
+  }).then(function () {
     verdetto();
     if (stato.frasi < 2) setTimeout(function () { ascolta(false); }, 300);
     else modo("", "Prova completata");
-  };
-  speechSynthesis.cancel();
-  speechSynthesis.speak(u);
-  setTimeout(function () {
-    if (!partita && stato.voceOk === null) {
-      stato.voceOk = false;
-      riga("r-voce", false, "La voce non è partita da sola: Safari ha chiesto un tocco.");
-      verdetto();
-      if (stato.frasi < 2) ascolta(false);
-    }
-  }, 2500);
+  });
 }
 
 // ----- avvio automatico -----
