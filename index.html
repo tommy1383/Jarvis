@@ -125,6 +125,8 @@ body.parla .core{animation:talk .3s ease-in-out infinite alternate}
       <button class="sec" type="button" id="chiudiImp">Chiudi</button>
       <button class="sec" type="button" id="cancellaMem">Cancella la memoria</button>
     </div>
+    <div class="bottoni"><button class="sec" type="button" id="provaVoce">Prova la voce</button></div>
+    <p id="esitoVoce" aria-live="polite"></p>
   </form>
 </div>
 
@@ -167,7 +169,17 @@ function salvaMem() { scrivi("jarvis.mem", MEM); aggiornaInfo(); }
 function stato(cls, etichetta) { document.body.className = cls; $("stato").textContent = etichetta; }
 function aggiornaInfo() {
   var modo = (CONF && CONF.modalita === "veloce") ? "Modalità veloce" : "Modalità intelligente";
-  $("info").textContent = modo + "  ·  Memoria " + MEM.fatti.length + ((typeof V !== "undefined" && V.errore) ? "  ·  Voce non disponibile" : "");
+  $("info").textContent = modo + "  ·  Memoria " + MEM.fatti.length + ((typeof V !== "undefined" && V.errore) ? "  ·  Voce non disponibile: " + motivoVoce(V.errore) : "");
+}
+function motivoVoce(m) {
+  m = String(m || "");
+  if (/load failed|failed to fetch|networkerror/i.test(m)) return "connessione bloccata";
+  if (/unusual|detected/i.test(m)) return "account gratuito bloccato da ElevenLabs";
+  if (/ 401/.test(m)) return "chiave rifiutata";
+  if (/ 402|quota|credit/i.test(m)) return "crediti finiti o API non attiva";
+  if (/ 403/.test(m)) return "permessi della chiave mancanti";
+  if (/ 429/.test(m)) return "troppe richieste";
+  return m.slice(0, 50);
 }
 function ora() { var d = new Date(); $("ora").textContent = pad(d.getHours()) + ":" + pad(d.getMinutes()); }
 ora(); setInterval(ora, 10000);
@@ -600,6 +612,33 @@ $("formImp").onsubmit = function (e) {
   var AC = window.AudioContext || window.webkitAudioContext;
   try { if (!AU.ctx && AC) AU.ctx = new AC(); if (AU.ctx.state !== "running") AU.ctx.resume(); } catch (err) {}
   if (primo) ciclo(true);
+};
+
+// Prova della voce: scarica una frase e la riproduce, dicendo dove si blocca
+$("provaVoce").onclick = function () {
+  var out = $("esitoVoce"), k = $("kEleven").value.trim();
+  if (!k) { out.textContent = "Inserisci prima la chiave di ElevenLabs."; return; }
+  var AC = window.AudioContext || window.webkitAudioContext;
+  try { if (!AU.ctx && AC) AU.ctx = new AC(); if (AU.ctx.state !== "running" && AU.ctx.resume) AU.ctx.resume(); }
+  catch (e) { out.textContent = "Audio non disponibile in questo browser."; return; }
+  out.textContent = "1/3 Contatto ElevenLabs…";
+  var precedente = CONF;
+  CONF = Object.assign({}, CONF || {}, { eleven: k, voce: $("sVoce").value });
+  scaricaVoce("Buongiorno. Questa è la mia voce.", "", VOCE_MODELLO).then(function (b) {
+    CONF = precedente;
+    V.errore = ""; aggiornaInfo();
+    out.textContent = "2/3 Voce ricevuta (modello " + VOCE_MODELLO + "). 3/3 La riproduco adesso: alza il volume.";
+    var src = AU.ctx.createBufferSource(); src.buffer = b; src.connect(AU.ctx.destination);
+    src.onended = function () { out.textContent += " Fatto. Se non hai sentito nulla, il problema è il volume o l'uscita audio."; };
+    src.start(0);
+  }, function (e) {
+    CONF = precedente;
+    var m = String((e && e.message) || e || "errore");
+    if (e && e.name === "TypeError") out.textContent = "Blocco al passo 1: il browser non riesce a contattare ElevenLabs (" + m + ").";
+    else if (/401|403/.test(m)) out.textContent = "Blocco al passo 1: chiave rifiutata o senza permessi. " + m;
+    else if (/402|quota|credit/i.test(m)) out.textContent = "Blocco al passo 1: crediti finiti o piano non abilitato all'API. " + m;
+    else out.textContent = "Blocco: " + m;
+  });
 };
 
 // ---------------- avvio ----------------
