@@ -2,27 +2,34 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#020a14">
-<title>Jarvis · prova 2</title>
+<title>J.A.R.V.I.S.</title>
 <style>
 :root{
-  --c:#5fe3ff; --c2:#1fa9d6; --bg:#020a14; --t:#d8f6ff; --dim:#7fb3c6;
-  --ok:#5fe3a1; --ko:#ff8a7a; --wait:#e8c46a;
+  --c:#5fe3ff; --c2:#1fa9d6; --bg:#020a14; --t:#d8f6ff; --dim:#7fb3c6; --ko:#ff8a7a;
   color-scheme:dark;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
 *,*::before,*::after{box-sizing:inherit}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--t);font:400 16px/1.5 -apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
-body{display:flex;flex-direction:column;align-items:center;padding:18px 20px 22px;
-  background:radial-gradient(ellipse at 50% 30%,#0b2c40 0%,#04121f 46%,var(--bg) 100%);overflow-x:hidden}
-.top{width:100%;max-width:520px;display:flex;justify-content:space-between;align-items:baseline;color:var(--dim);font-size:13px}
-.top b{color:var(--c);font-weight:600;letter-spacing:.06em}
-.reactor{position:relative;width:min(56vw,230px);aspect-ratio:1/1;margin:4vh 0 2vh;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:boot .8s cubic-bezier(.2,.9,.3,1.25) both}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--t);font:400 16px/1.5 -apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%;overflow:hidden}
+body{display:flex;flex-direction:column;align-items:center;padding:14px 20px 16px;
+  background:radial-gradient(ellipse at 50% 34%,#0b2c40 0%,#04121f 46%,var(--bg) 100%)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--c);outline-offset:3px}
+.grid{position:fixed;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(95,227,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(95,227,255,.05) 1px,transparent 1px);
+  background-size:32px 32px;-webkit-mask-image:radial-gradient(circle at 50% 36%,#000 0%,transparent 68%);mask-image:radial-gradient(circle at 50% 36%,#000 0%,transparent 68%)}
+.top{width:100%;max-width:640px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--dim);position:relative;z-index:1}
+.top b{color:var(--c);letter-spacing:.08em;font-weight:600}
+.top .dx{display:flex;align-items:center;gap:14px}
+.gear{background:none;border:0;padding:6px;margin:-6px;color:var(--dim);cursor:pointer}
+.info{width:100%;max-width:640px;margin-top:4px;font-size:12px;color:var(--dim);opacity:.85;min-height:16px}
+.reactor{position:relative;width:min(58vw,260px);aspect-ratio:1/1;margin:4vh 0 2.5vh;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:boot .8s cubic-bezier(.2,.9,.3,1.25) both}
 .reactor svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 10px rgba(95,227,255,.45))}
 .spin{transform-box:fill-box;transform-origin:center;animation:spin 18s linear infinite}
 .spin.rev{animation-direction:reverse;animation-duration:26s}
@@ -36,34 +43,42 @@ body{display:flex;flex-direction:column;align-items:center;padding:18px 20px 22p
 body.ascolto .spin{animation-duration:6s}
 body.ascolto .core{animation:breathe 1.1s ease-in-out infinite}
 body.ascolto .liv{opacity:.3}
+body.pensa .spin{animation-duration:1.4s}
+body.pensa .spin.rev{animation-duration:2.2s}
 body.parla .core{animation:talk .3s ease-in-out infinite alternate}
-.stato{font-size:15px;font-weight:600;letter-spacing:.08em;color:var(--c);text-shadow:0 0 12px rgba(95,227,255,.6);min-height:22px;text-align:center}
-.detto{margin:10px 0 4px;min-height:52px;max-width:30em;text-align:center;font-size:19px;line-height:1.4}
-.detto.vuoto{color:var(--dim);font-size:15px}
-.avvia{display:none;margin:6px 0 2px;border:1px solid var(--c);background:rgba(95,227,255,.1);color:var(--t);font:600 16px/1 inherit;padding:14px 22px;border-radius:14px;cursor:pointer}
-.avvia.on{display:inline-block}
-.avvia:focus-visible{outline:2px solid var(--c);outline-offset:3px}
-.esito{width:100%;max-width:520px;margin-top:18px;padding:16px 16px 6px;border:1px solid rgba(95,227,255,.25);border-radius:16px;background:rgba(4,18,31,.7)}
-.esito h2{margin:0 0 10px;font-size:15px;font-weight:600;color:var(--t)}
-.riga{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-top:1px solid rgba(95,227,255,.12)}
-.riga:first-of-type{border-top:0}
-.pallino{flex:none;width:12px;height:12px;border-radius:50%;margin-top:6px;background:var(--wait);box-shadow:0 0 8px var(--wait)}
-.riga.ok .pallino{background:var(--ok);box-shadow:0 0 8px var(--ok)}
-.riga.ko .pallino{background:var(--ko);box-shadow:0 0 8px var(--ko)}
-.riga p{margin:0}
-.riga .nome{font-weight:600}
-.riga .val{color:var(--dim);font-size:14px}
-.verdetto{margin:14px 0 6px;padding:12px 14px;border-radius:12px;background:rgba(95,227,255,.08);font-size:15px}
-.aiuto{width:100%;max-width:520px;margin-top:14px;color:var(--dim);font-size:14px}
-.aiuto summary{cursor:pointer;color:var(--t)}
-.aiuto ol{padding-left:1.2em;margin:8px 0}
+.stato{font-size:14px;font-weight:600;letter-spacing:.14em;color:var(--c);text-shadow:0 0 12px rgba(95,227,255,.6);min-height:20px;text-align:center}
+.tu{margin-top:12px;font-size:15px;line-height:1.4;color:var(--dim);text-align:center;min-height:20px;max-width:34em}
+.risposta{margin-top:10px;width:100%;max-width:36em;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;font-size:18px;line-height:1.5;text-align:center;padding:8px 0;
+  -webkit-mask-image:linear-gradient(transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);mask-image:linear-gradient(transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%)}
+.azione{margin-top:6px;font-size:13px;color:var(--c);text-align:center;min-height:18px}
+.campo{display:none;width:100%;max-width:34em;gap:8px;margin-top:8px}
+.campo.on{display:flex}
+.campo input{flex:1;min-width:0;background:rgba(95,227,255,.07);border:1px solid rgba(95,227,255,.4);border-radius:12px;padding:12px 14px;font-size:16px;outline:none}
+.campo button{background:var(--c);color:#02202b;border:0;border-radius:12px;padding:0 16px;font-weight:700}
+.hint{margin-top:8px;font-size:13px;color:var(--dim);text-align:center;min-height:18px}
+/* impostazioni */
+.pannello{position:fixed;inset:0;z-index:20;display:none;overflow-y:auto;background:rgba(2,10,20,.97);padding:calc(env(safe-area-inset-top,0px) + 24px) 22px calc(env(safe-area-inset-bottom,0px) + 28px)}
+.pannello.on{display:block}
+.pannello form{max-width:520px;margin:0 auto;display:grid;gap:16px}
+.pannello h1{margin:0;font-size:24px;letter-spacing:.08em;color:var(--c);font-weight:600}
+.pannello p{margin:0;color:var(--dim);font-size:14px}
+.pannello label{display:grid;gap:6px;font-weight:600;font-size:15px}
+.pannello label span{font-weight:400;color:var(--dim);font-size:13px}
+.pannello input,.pannello select{background:rgba(95,227,255,.06);border:1px solid rgba(95,227,255,.35);border-radius:12px;padding:12px 14px;font-size:16px;width:100%}
+.riga2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bottoni{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.prim{background:var(--c);color:#02202b;border:0;border-radius:12px;padding:13px 20px;font-weight:700;cursor:pointer}
+.sec{background:none;border:1px solid rgba(95,227,255,.4);border-radius:12px;padding:12px 18px;cursor:pointer}
+.errore{color:var(--ko);font-size:14px;min-height:18px}
 @media (prefers-reduced-motion:reduce){.spin,.core,.reactor{animation:none!important}}
 </style>
 </head>
 <body>
-<div class="top"><span><b>J.A.R.V.I.S.</b> prova 2</span><span id="ora"></span></div>
+<div class="grid"></div>
+<div class="top"><span><b>J.A.R.V.I.S.</b> Online</span><span class="dx"><span id="ora"></span><button class="gear" id="apriImpostazioni" type="button" aria-label="Impostazioni"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></span></div>
+<div class="info" id="info"></div>
 
-<div class="reactor" id="reactor" role="button" tabindex="0" aria-label="Avvia l'ascolto">
+<div class="reactor" id="reactor" role="button" tabindex="0" aria-label="Parla con Jarvis">
 <svg viewBox="0 0 200 200" aria-hidden="true">
   <defs><radialGradient id="g"><stop offset="0" stop-color="#ecfdff"/><stop offset=".35" stop-color="#5fe3ff"/><stop offset="1" stop-color="#5fe3ff" stop-opacity="0"/></radialGradient></defs>
   <circle class="liv" id="liv" cx="100" cy="100" r="99" fill="none" stroke="#5fe3ff" stroke-width="2"/>
@@ -75,250 +90,522 @@ body.parla .core{animation:talk .3s ease-in-out infinite alternate}
   <g class="core"><circle cx="100" cy="100" r="42" fill="url(#g)" opacity=".6"/><circle cx="100" cy="100" r="25" fill="none" stroke="#5fe3ff" stroke-width="3"/><circle cx="100" cy="100" r="17" fill="#e6fcff"/></g>
 </svg>
 </div>
-
 <div class="stato" id="stato">Avvio</div>
-<div class="detto vuoto" id="detto">Di’ qualcosa, per esempio “che ore sono”.</div>
-<button class="avvia" id="avvia" type="button">Tocca per avviare l’ascolto</button>
+<div class="tu" id="tu"></div>
+<div class="risposta" id="risposta" aria-live="polite"></div>
+<div class="azione" id="azione"></div>
+<form class="campo" id="campo"><input id="inp" placeholder="Scrivi a Jarvis" enterkeyhint="send" autocomplete="off"><button type="submit">Invia</button></form>
+<div class="hint" id="hint"></div>
 
-<section class="esito" aria-live="polite">
-  <h2>Risultati della prova</h2>
-  <div class="riga" id="r-perm"><span class="pallino"></span><div><p class="nome">Permesso del microfono</p><p class="val">Controllo in corso…</p></div></div>
-  <div class="riga" id="r-auto"><span class="pallino"></span><div><p class="nome">Ascolto all’apertura, senza tocchi</p><p class="val">Controllo in corso…</p></div></div>
-  <div class="riga" id="r-ric"><span class="pallino"></span><div><p class="nome">Riconoscimento della voce</p><p class="val">Parla quando vedi “In ascolto”.</p></div></div>
-  <div class="riga" id="r-audio"><span class="pallino"></span><div><p class="nome">Audio automatico (come la voce ElevenLabs)</p><p class="val">In attesa della prima frase.</p></div></div>
-  <div class="riga" id="r-web"><span class="pallino"></span><div><p class="nome">Audio di riserva</p><p class="val">In attesa della prima frase.</p></div></div>
-  <div class="riga" id="r-voce"><span class="pallino"></span><div><p class="nome">Voce del browser</p><p class="val">In attesa della prima frase.</p></div></div>
-  <div class="riga" id="r-seg"><span class="pallino"></span><div><p class="nome">Conversazione continua</p><p class="val">In attesa della seconda frase.</p></div></div>
-  <div class="verdetto" id="verdetto">Parla due volte di seguito, poi fai uno screenshot di questa schermata.</div>
-</section>
-
-<details class="aiuto">
-  <summary>Come rendere permanente il permesso del microfono</summary>
-  <ol>
-    <li>In Safari, con questa pagina aperta, tocca l’icona a sinistra dell’indirizzo (aA o il rettangolo con le righe).</li>
-    <li>Scegli <strong>Impostazioni sito web</strong> e imposta <strong>Microfono</strong> su <strong>Consenti</strong>.</li>
-    <li>In alternativa: Impostazioni › App › Safari › Microfono › Consenti.</li>
-    <li>Chiudi la pagina e riaprila con “Ehi Jarvis”.</li>
-  </ol>
-</details>
+<div class="pannello" id="pannello" role="dialog" aria-label="Impostazioni di Jarvis">
+  <form id="formImp">
+    <h1>J.A.R.V.I.S.</h1>
+    <p>Le chiavi restano salvate solo su questo dispositivo e servono a Jarvis per pensare e parlare.</p>
+    <label>Chiave API di Claude <span>Inizia con sk-ant-. Dalla Console di Claude.</span><input id="kClaude" type="password" autocomplete="off" required></label>
+    <label>Chiave API di ElevenLabs <span>Per la voce realistica. Senza, Jarvis scrive le risposte.</span><input id="kEleven" type="password" autocomplete="off"></label>
+    <div class="riga2">
+      <label>Voce<select id="sVoce">
+        <option value="JBFqnCBsd6RMkjVDRZzb">George</option>
+        <option value="onwK4e9ZLuTAKqWW03F9">Daniel</option>
+        <option value="nPczCjzI2devNBz1zQrb">Brian</option>
+        <option value="Xb7hH8MSUJpSbSDYk0k2">Alice</option>
+      </select></label>
+      <label>Cervello<select id="sModalita">
+        <option value="intelligente">Intelligente</option>
+        <option value="veloce">Veloce ed economico</option>
+      </select></label>
+    </div>
+    <div class="riga2">
+      <label>Ti dà del<select id="sForma"><option value="tu">Tu</option><option value="lei">Lei</option></select></label>
+      <label>Saluto all'apertura<select id="sSaluto"><option value="si">Sì</option><option value="no">No</option></select></label>
+    </div>
+    <div class="errore" id="errImp"></div>
+    <div class="bottoni">
+      <button class="prim" type="submit">Salva e avvia</button>
+      <button class="sec" type="button" id="chiudiImp">Chiudi</button>
+      <button class="sec" type="button" id="cancellaMem">Cancella la memoria</button>
+    </div>
+  </form>
+</div>
 
 <script>
-var $ = function (id) { return document.getElementById(id); };
-var stato = { permessoIniziale: "sconosciuto", frasi: 0, autoOk: null, voceOk: null, rec: null, ascolta: false, toccato: false };
+"use strict";
+// =====================================================================
+//  J.A.R.V.I.S. web — versione 1.0
+// =====================================================================
+var MODELLI = { intelligente: "claude-sonnet-5-5", veloce: "claude-haiku-5-5" };
+var VOCE_MODELLO = "eleven_v4", VOCE_RISERVA = "eleven_multilingual_v2";
+var NAVIGATORE = "google";            // "google" oppure "apple"
+var MAX_STORIA = 8, STORIA_MINUTI = 30;
+var GIORNI = ["domenica", "lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato"];
+var APP = {
+  whatsapp: "whatsapp://", instagram: "instagram://", telegram: "tg://", spotify: "spotify://", youtube: "youtube://",
+  facebook: "fb://", linkedin: "linkedin://", netflix: "nflx://", gmail: "googlegmail://", "google maps": "comgooglemaps://",
+  mappe: "maps://", mail: "message://", calendario: "calshow://", note: "mobilenotes://", foto: "photos-redirect://",
+  musica: "music://", impostazioni: "App-prefs:", "comandi rapidi": "shortcuts://", scriptable: "scriptable://"
+};
 
-function ora() { var d = new Date(); $("ora").textContent = ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2); }
+function $(id) { return document.getElementById(id); }
+function pad(n) { return String(n).padStart(2, "0"); }
+function oraLocale(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+function attesa(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+function normale(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim(); }
+function sembraSegreto(t) {
+  return /sk-[A-Za-z0-9_-]{10,}/.test(t) || /\b(password|passwd|pwd|pin)\b/i.test(t) || /\b(?:\d[ -]?){13,19}\b/.test(t) || /\bIT\d{2}\s?[A-Z]\s?\d{5}\s?\d{5}\s?[0-9A-Z]{12}\b/i.test(t);
+}
+
+// ---------------- configurazione e memoria (solo su questo dispositivo) ----------------
+function leggi(k, def) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
+function scrivi(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+var CONF = leggi("jarvis.conf", null);
+var MEM = leggi("jarvis.mem", { fatti: [], storia: [], note: "" });
+if (!Array.isArray(MEM.fatti)) MEM.fatti = [];
+if (!Array.isArray(MEM.storia)) MEM.storia = [];
+function salvaMem() { scrivi("jarvis.mem", MEM); aggiornaInfo(); }
+
+// ---------------- interfaccia ----------------
+function stato(cls, etichetta) { document.body.className = cls; $("stato").textContent = etichetta; }
+function aggiornaInfo() {
+  var modo = (CONF && CONF.modalita === "veloce") ? "Modalità veloce" : "Modalità intelligente";
+  $("info").textContent = modo + "  ·  Memoria " + MEM.fatti.length + ((typeof V !== "undefined" && V.errore) ? "  ·  Voce non disponibile" : "");
+}
+function ora() { var d = new Date(); $("ora").textContent = pad(d.getHours()) + ":" + pad(d.getMinutes()); }
 ora(); setInterval(ora, 10000);
-
-function riga(id, esito, testo) {
-  var r = $(id);
-  r.className = "riga" + (esito === true ? " ok" : esito === false ? " ko" : "");
-  r.querySelector(".val").textContent = testo;
-}
-function modo(cls, etichetta) { document.body.className = cls; $("stato").textContent = etichetta; }
-
-function verdetto() {
-  var v = $("verdetto");
-  if (stato.autoOk === true && stato.permessoIniziale === "granted" && stato.frasi >= 2 && stato.voceOk) {
-    v.textContent = "Tutto funziona: Jarvis può aprirsi e ascoltarti senza tocchi né permessi. Mandami uno screenshot.";
-  } else if (stato.frasi >= 1) {
-    v.textContent = "Prova completata in parte. Mandami uno screenshot di questa schermata così vedo cosa sistemare.";
-  }
+function pulisci(t) { return String(t).replace(/\*\*|__|`/g, "").replace(/^#+\s*/gm, "").replace(/^\s*[-•*]\s+/gm, "").replace(/https?:\/\/\S+/g, ""); }
+function perVoce(t) {
+  return String(t)
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "")
+    .replace(/(\d)\s?€/g, "$1 euro").replace(/€\s?(\d[\d.,]*)/g, "$1 euro")
+    .replace(/(\d)\s?%/g, "$1 per cento").replace(/(\d)\s?°\s?C\b/g, "$1 gradi").replace(/(\d)\s?°/g, "$1 gradi")
+    .replace(/(\d)\s?km\/h/gi, "$1 chilometri orari").replace(/(\d)\s?km\b/gi, "$1 chilometri")
+    .replace(/\b(\d{1,2}):00\b/g, "$1").replace(/\b(\d{1,2}):30\b/g, "$1 e mezza").replace(/\b(\d{1,2}):(\d{2})\b/g, "$1 e $2")
+    .replace(/(\d)\.(\d{1,2})(?!\d)/g, "$1,$2").replace(/\s*[—–]\s*/g, ", ").replace(/[()]/g, ", ")
+    .replace(/\s+([,.!?])/g, "$1").replace(/\s{2,}/g, " ").trim();
 }
 
-// ----- livello del microfono, per animare l'anello e verificare che il microfono funzioni -----
-var audio = { ctx: null, an: null, buf: null };
-function avviaMisuratore(stream) {
-  try {
+// ---------------- audio: microfono + contesto audio (permette di parlare senza tocchi) ----------------
+var AU = { ctx: null, an: null, buf: null, stream: null };
+function preparaAudio() {
+  return new Promise(function (fine) {
     var AC = window.AudioContext || window.webkitAudioContext;
-    audio.ctx = new AC();
-    var src = audio.ctx.createMediaStreamSource(stream);
-    audio.an = audio.ctx.createAnalyser(); audio.an.fftSize = 1024;
-    src.connect(audio.an);
-    audio.buf = new Float32Array(audio.an.fftSize);
-    if (audio.ctx.state !== "running" && audio.ctx.resume) audio.ctx.resume();
-    (function giro() {
-      if (audio.an && audio.ctx.state === "running") {
-        audio.an.getFloatTimeDomainData(audio.buf);
-        var s = 0; for (var i = 0; i < audio.buf.length; i++) s += audio.buf[i] * audio.buf[i];
-        var v = Math.min(1, Math.sqrt(s / audio.buf.length) * 14);
-        var liv = $("liv"); liv.style.opacity = stato.ascolta ? String(0.3 + v * 0.7) : "0";
-        liv.style.transform = "scale(" + (1 + v * 0.07) + ")";
+    try { if (!AU.ctx && AC) AU.ctx = new AC(); } catch (e) {}
+    if (AU.stream || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (AU.ctx && AU.ctx.state !== "running" && AU.ctx.resume) AU.ctx.resume();
+      fine(!!AU.stream); return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }).then(function (st) {
+      AU.stream = st;
+      try {
+        var src = AU.ctx.createMediaStreamSource(st);
+        AU.an = AU.ctx.createAnalyser(); AU.an.fftSize = 1024; src.connect(AU.an);
+        AU.buf = new Float32Array(AU.an.fftSize);
+      } catch (e) {}
+      if (AU.ctx && AU.ctx.state !== "running" && AU.ctx.resume) AU.ctx.resume();
+      fine(true);
+    }, function () { fine(false); });
+  });
+}
+(function anello() {
+  var liv = $("liv");
+  if (AU.an && AU.ctx && AU.ctx.state === "running" && document.body.className === "ascolto") {
+    AU.an.getFloatTimeDomainData(AU.buf);
+    var s = 0; for (var i = 0; i < AU.buf.length; i++) s += AU.buf[i] * AU.buf[i];
+    var v = Math.min(1, Math.sqrt(s / AU.buf.length) * 14);
+    liv.style.opacity = String(0.3 + v * 0.7); liv.style.transform = "scale(" + (1 + v * 0.07) + ")";
+  } else { liv.style.opacity = ""; liv.style.transform = ""; }
+  requestAnimationFrame(anello);
+})();
+
+// ---------------- voce: ElevenLabs riprodotto con l'audio web ----------------
+var V = { coda: [], suona: false, attesaTesto: "", primo: false, ultimo: "", sorgente: null, errore: "", parlato: false, ascoltatori: [] };
+function voceAttiva() { return !!(CONF && CONF.eleven) && !V.errore && !!AU.ctx; }
+function scaricaBytes(testo, precedente, modello) {
+  var body = { text: testo, model_id: modello, voice_settings: { stability: 0.6, similarity_boost: 0.8, style: 0.1, use_speaker_boost: true } };
+  if (precedente && /v2/.test(modello)) body.previous_text = precedente.slice(-300);
+  return fetch("https://api.elevenlabs.io/v1/text-to-speech/" + encodeURIComponent(CONF.voce || "JBFqnCBsd6RMkjVDRZzb") + "?output_format=mp3_44100_128", {
+    method: "POST", headers: { "xi-api-key": CONF.eleven, "content-type": "application/json", "accept": "audio/mpeg" }, body: JSON.stringify(body)
+  }).then(function (res) {
+    if (!res.ok) {
+      if (res.status >= 400 && res.status < 500 && [401, 402, 403, 429].indexOf(res.status) < 0 && modello !== VOCE_RISERVA) {
+        VOCE_MODELLO = VOCE_RISERVA; return scaricaBytes(testo, precedente, VOCE_RISERVA);
       }
-      requestAnimationFrame(giro);
-    })();
-  } catch (e) {}
+      return res.text().then(function (t) { throw new Error("ElevenLabs " + res.status + ": " + String(t).slice(0, 120)); });
+    }
+    return res.arrayBuffer();
+  });
 }
+function scaricaVoce(testo, precedente, modello) {
+  return scaricaBytes(testo, precedente, modello).then(function (dati) {
+    return new Promise(function (ok, ko) { AU.ctx.decodeAudioData(dati, ok, ko); });
+  });
+}
+function accoda(testo) {
+  var pezzo = { testo: testo, buffer: null, errore: null };
+  pezzo.pronto = scaricaVoce(testo, V.ultimo, VOCE_MODELLO).then(function (b) { pezzo.buffer = b; }, function (e) { pezzo.errore = e || new Error("errore"); });
+  V.ultimo = testo;
+  V.coda.push(pezzo);
+  if (!V.suona) prossimo();
+}
+function prossimo() {
+  if (!V.coda.length) { V.suona = false; if (document.body.className === "parla") stato("pronto", "Pronto"); avvisaFineVoce(); return; }
+  V.suona = true;
+  var p = V.coda[0];
+  p.pronto.then(function () {
+    if (V.coda[0] !== p) return;
+    V.coda.shift();
+    if (p.errore || !p.buffer) {
+      V.errore = String((p.errore && p.errore.message) || "errore");
+      $("azione").textContent = "Voce non disponibile: " + V.errore.slice(0, 90);
+      aggiornaInfo();
+      V.coda = []; V.suona = false; avvisaFineVoce(); return;
+    }
+    if (AU.ctx.state !== "running" && AU.ctx.resume) AU.ctx.resume();
+    var s = AU.ctx.createBufferSource(); s.buffer = p.buffer; s.connect(AU.ctx.destination);
+    V.sorgente = s;
+    s.onended = function () { V.sorgente = null; prossimo(); };
+    V.parlato = true; stato("parla", "Risposta");
+    s.start(0);
+  });
+}
+function dici(t) {
+  t = perVoce(pulisci(t));
+  if (!t || !voceAttiva()) return;
+  V.attesaTesto = V.attesaTesto ? V.attesaTesto + " " + t : t;
+  if (!V.primo || V.attesaTesto.length >= 140) { var x = V.attesaTesto; V.attesaTesto = ""; V.primo = true; accoda(x); }
+}
+function svuota() { if (V.attesaTesto && voceAttiva()) { var x = V.attesaTesto; V.attesaTesto = ""; accoda(x); } }
+function nuovaRisposta() { V.primo = false; V.ultimo = ""; V.attesaTesto = ""; }
+function fermaVoce() { V.coda = []; V.attesaTesto = ""; if (V.sorgente) { try { V.sorgente.stop(); } catch (e) {} } V.sorgente = null; V.suona = false; avvisaFineVoce(); }
+function avvisaFineVoce() { var l = V.ascoltatori; V.ascoltatori = []; l.forEach(function (f) { f(); }); }
+function fineVoce() { return new Promise(function (r) { if (!V.suona && !V.coda.length && !V.attesaTesto) r(); else V.ascoltatori.push(r); }); }
+function diciTutto(t) { nuovaRisposta(); dici(t); svuota(); return fineVoce(); }
 
-// ----- permesso del microfono -----
-function controllaPermesso() {
-  if (!navigator.permissions || !navigator.permissions.query) return Promise.resolve("sconosciuto");
-  return navigator.permissions.query({ name: "microphone" }).then(function (p) { return p.state; }, function () { return "sconosciuto"; });
-}
-function ottieniMicrofono() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return Promise.reject(new Error("nonsupportato"));
-  return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-}
-
-// ----- riconoscimento vocale -----
+// ---------------- ascolto: riconoscimento vocale di Safari ----------------
 var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-function ascolta(daTocco) {
-  if (!SR) { riga("r-ric", false, "Questo browser non ha il riconoscimento vocale."); return; }
-  if (stato.ascolta) return;
-  var r = new SR(); stato.rec = r;
-  r.lang = "it-IT"; r.interimResults = true; r.continuous = true;
-  var testo = "", partito = false, silenzio = null;
-  r.onstart = function () {
-    partito = true; stato.ascolta = true; modo("ascolto", "In ascolto");
-    $("avvia").className = "avvia";
-    if (!daTocco && stato.autoOk === null) { stato.autoOk = true; riga("r-auto", true, "Si è messo in ascolto da solo, senza tocchi."); }
-    if (daTocco && stato.autoOk === null) { stato.autoOk = false; riga("r-auto", false, "È servito un tocco per iniziare ad ascoltare."); }
-  };
-  r.onresult = function (e) {
-    testo = ""; for (var i = 0; i < e.results.length; i++) testo += e.results[i][0].transcript;
-    testo = testo.replace(/\s+/g, " ").trim();
-    $("detto").className = "detto"; $("detto").textContent = "« " + testo + " »";
-    // la frase è finita quando smetti di parlare per un attimo
-    clearTimeout(silenzio);
-    silenzio = setTimeout(function () { try { r.stop(); } catch (err) {} }, 1400);
-  };
-  r.onerror = function (e) {
-    stato.ascolta = false;
-    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-      if (!daTocco) {
-        stato.autoOk = false;
-        riga("r-auto", false, "Safari non permette di iniziare ad ascoltare senza un tocco (" + e.error + ").");
-        $("avvia").className = "avvia on"; modo("", "Tocca per avviare");
-      } else {
-        riga("r-ric", false, "Ascolto non consentito. Controlla Impostazioni › Siri e dettatura, e il permesso del microfono.");
+var ASC = { r: null, attivo: false, ferma: null };
+function ascolta(attesaMax) {
+  return new Promise(function (fine) {
+    if (!SR) { fine(null); return; }
+    var r = new SR(), testo = "", silenzio = null, scaduto = null, finito = false;
+    r.lang = "it-IT"; r.interimResults = true; r.continuous = true;
+    function chiudi(x) { if (finito) return; finito = true; clearTimeout(silenzio); clearTimeout(scaduto); ASC.attivo = false; ASC.ferma = null; try { r.stop(); } catch (e) {} fine(x); }
+    ASC.r = r; ASC.ferma = function () { chiudi(testo.trim()); };
+    r.onstart = function () { ASC.attivo = true; stato("ascolto", "In ascolto"); $("hint").textContent = ""; };
+    r.onresult = function (e) {
+      testo = ""; for (var i = 0; i < e.results.length; i++) testo += e.results[i][0].transcript;
+      testo = testo.replace(/\s+/g, " ").trim();
+      $("tu").textContent = "« " + testo + " »";
+      clearTimeout(scaduto); clearTimeout(silenzio);
+      silenzio = setTimeout(function () { chiudi(testo); }, 1400);
+    };
+    r.onerror = function (e) { if (e.error === "no-speech" || e.error === "aborted") return; chiudi(testo || (e.error === "not-allowed" || e.error === "service-not-allowed" ? null : "")); };
+    r.onend = function () { chiudi(testo); };
+    scaduto = setTimeout(function () { if (!testo) chiudi(""); }, attesaMax || 9000);
+    try { r.start(); } catch (e) { chiudi(null); }
+  });
+}
+function scriviRichiesta() {
+  return new Promise(function (fine) {
+    stato("pronto", "Scrivi la richiesta");
+    $("campo").className = "campo on";
+    var inp = $("inp"); inp.value = ""; try { inp.focus(); } catch (e) {}
+    $("campo").onsubmit = function (e) { e.preventDefault(); var v = inp.value.trim(); if (!v) return; $("campo").className = "campo"; inp.blur(); fine(v); };
+  });
+}
+
+// ---------------- il cervello: Claude ----------------
+var STRUMENTI = [
+  { name: "naviga", description: "Apre il navigatore con le indicazioni verso un luogo o un indirizzo.",
+    input_schema: { type: "object", properties: { destinazione: { type: "string" }, mezzo: { type: "string", enum: ["auto", "piedi", "mezzi"] } }, required: ["destinazione"] } },
+  { name: "cerca_luogo", description: "Mostra sulla mappa luoghi o attività, per esempio ristoranti o farmacie vicini.",
+    input_schema: { type: "object", properties: { ricerca: { type: "string" } }, required: ["ricerca"] } },
+  { name: "apri_app", description: "Apre una app sul telefono. App disponibili: " + Object.keys(APP).join(", ") + ".",
+    input_schema: { type: "object", properties: { app: { type: "string", enum: Object.keys(APP) } }, required: ["app"] } },
+  { name: "apri_sito", description: "Apre un sito web.", input_schema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] } },
+  { name: "cerca_web", description: "Apre una ricerca Google sullo schermo, per far vedere i risultati a Tommaso.", input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } },
+  { name: "youtube", description: "Cerca un video su YouTube.", input_schema: { type: "object", properties: { ricerca: { type: "string" } }, required: ["ricerca"] } },
+  { name: "musica", description: "Cerca un brano, un artista o una playlist su Spotify.", input_schema: { type: "object", properties: { ricerca: { type: "string" } }, required: ["ricerca"] } },
+  { name: "chiama", description: "Avvia una telefonata a un numero. Il numero va preso dalla memoria o chiesto a Tommaso.", input_schema: { type: "object", properties: { numero: { type: "string" } }, required: ["numero"] } },
+  { name: "sms", description: "Prepara un SMS per un numero. Tommaso lo invia con un tocco.", input_schema: { type: "object", properties: { numero: { type: "string" }, testo: { type: "string" } }, required: ["numero", "testo"] } },
+  { name: "whatsapp", description: "Prepara un messaggio WhatsApp per un numero. Tommaso lo invia con un tocco.", input_schema: { type: "object", properties: { numero: { type: "string" }, testo: { type: "string" } }, required: ["numero", "testo"] } },
+  { name: "email", description: "Prepara una email. Tommaso la invia lui.", input_schema: { type: "object", properties: { indirizzo: { type: "string" }, oggetto: { type: "string" }, testo: { type: "string" } }, required: ["indirizzo", "testo"] } },
+  { name: "esegui_comando_rapido", description: "Esegue un comando rapido di Tommaso per nome, con testo facoltativo. Serve per promemoria, sveglie, torcia e impostazioni del telefono. Usalo solo con comandi che risultano nella memoria.",
+    input_schema: { type: "object", properties: { nome: { type: "string" }, input: { type: "string" } }, required: ["nome"] } },
+  { name: "note", description: "Il taccuino di Jarvis: aggiungi una nota, leggi le note o svuotale.",
+    input_schema: { type: "object", properties: { azione: { type: "string", enum: ["aggiungi", "leggi", "svuota"] }, testo: { type: "string" } }, required: ["azione"] } },
+  { name: "posizione", description: "Restituisce le coordinate di dove si trova adesso Tommaso.", input_schema: { type: "object", properties: {} } },
+  { name: "ricorda", description: "Salva nella memoria permanente un fatto duraturo su Tommaso (chi è, obiettivi, progetti, preferenze, persone, numeri di telefono che ti dà, comandi rapidi che ha). Solo cose che dice lui.",
+    input_schema: { type: "object", properties: { fatto: { type: "string" } }, required: ["fatto"] } },
+  { name: "dimentica", description: "Cancella dalla memoria il fatto con questo id. Solo se Tommaso lo chiede.", input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"] } }
+];
+var LETTURA = ["posizione"];
+
+function istruzioni(ricerca) {
+  var fatti = MEM.fatti.length ? MEM.fatti.map(function (f) { return "[" + f.id + "] " + f.testo; }).join("\n") : "(nessuno)";
+  var lei = CONF && CONF.forma === "lei";
+  return "Sei Jarvis, l'assistente personale di Tommaso. Sotto il cofano sei Claude, ma hai lo stile di J.A.R.V.I.S. dei film: pacato, elegante, preciso, con un'ironia sottile e un po' british.\n"
+    + "All'inizio dell'ultimo messaggio di Tommaso trovi, tra parentesi quadre, giorno e ora attuali (ora italiana).\n\n"
+    + "Chi sei:\n- Intelligente e affidabile. Ragiona davvero e dai risposte utili e concrete.\n"
+    + (lei ? "- Dai del lei a Tommaso e chiamalo signore con misura.\n" : "- Dai del tu a Tommaso. Ogni tanto puoi chiamarlo signore, con misura.\n")
+    + "- Usa la memoria qui sotto quando rende la risposta migliore, senza elencarla.\n"
+    + "- Sii onesto: se un'idea ha punti deboli dillo con garbo, non promettere guadagni, e se non sai qualcosa dillo.\n"
+    + (ricerca ? "- Per notizie, meteo, orari, prezzi e tutto ciò che può essere cambiato di recente, cerca sul web prima di rispondere.\n" : "- In questo momento non puoi cercare sul web.\n")
+    + "\nCome parli (la risposta viene letta ad alta voce mentre la scrivi):\n"
+    + "- Tono elegante, professionale e rassicurante: calmo, cortese e caldo, mai freddo né servile.\n"
+    + "- Frasi brevi e ben scandite. Comincia subito con la risposta. Niente esclamazioni, elenchi, simboli, emoji, link o formattazione.\n"
+    + "- Comandi e domande semplici: una o due frasi. Domande vere: fino a 6-8 frasi, poi offri di approfondire.\n"
+    + "- Scrivi orari, prezzi e misure come si pronunciano.\n"
+    + "- Se Tommaso chiede un'azione, usa lo strumento giusto e conferma in una frase cosa fai. Se manca un dato indispensabile, come un numero di telefono che non è in memoria, chiedilo.\n"
+    + "- Messaggi ed email vengono solo preparati: è Tommaso a toccare Invia.\n\n"
+    + "Limiti: funzioni come pagina web, quindi non puoi leggere rubrica, calendario, promemoria, messaggi o notifiche. Per promemoria, sveglie, torcia e impostazioni del telefono usa esegui_comando_rapido solo con nomi che risultano nella memoria; altrimenti spiega in una frase che Tommaso può creare il comando rapido e dirti di ricordarlo.\n\n"
+    + "Memoria: usa ricorda per i fatti duraturi che Tommaso ti dice o ti chiede di ricordare, mai password, chiavi, codici, documenti, carte o conti. Usa dimentica solo se te lo chiede.\n\n"
+    + "Cosa sai di Tommaso:\n" + fatti;
+}
+function messaggi(richiesta) {
+  var limite = Date.now() - STORIA_MINUTI * 60000;
+  var recenti = MEM.storia.filter(function (m) { return m && m.t > limite && m.content; }).slice(-MAX_STORIA);
+  while (recenti.length && recenti[0].role !== "user") recenti.shift();
+  var out = [];
+  recenti.forEach(function (m) { var u = out[out.length - 1]; if (u && u.role === m.role) u.content += "\n" + m.content; else out.push({ role: m.role, content: m.content }); });
+  var d = new Date(), conOra = "[" + GIORNI[d.getDay()] + " " + oraLocale(d).replace("T", " ore ") + "] " + richiesta;
+  if (out.length && out[out.length - 1].role === "user") out[out.length - 1].content += "\n" + conOra; else out.push({ role: "user", content: conOra });
+  return out;
+}
+function corpo(richiesta, ricerca, extra) {
+  var strumenti = STRUMENTI.slice();
+  if (ricerca) strumenti.push({ type: "web_search_20250305", name: "web_search", max_uses: 2, user_location: { type: "approximate", country: "IT", timezone: "Europe/Rome" } });
+  return { model: MODELLI[(CONF && CONF.modalita) || "intelligente"] || MODELLI.intelligente, max_tokens: 1200, stream: true,
+    system: [{ type: "text", text: istruzioni(ricerca), cache_control: { type: "ephemeral" } }], tools: strumenti, messages: messaggi(richiesta).concat(extra || []) };
+}
+// Chiede a Claude in streaming: il testo viene mostrato e letto mentre arriva
+function chiedi(body) {
+  return new Promise(function (fine) {
+    var blocchi = [], err = null, tot = "", nuovo = false, buf = "";
+    $("risposta").textContent = ""; nuovaRisposta(); stato("pensa", "Elaborazione");
+    function testo(d) {
+      tot += d; $("risposta").textContent = pulisci(tot); $("risposta").scrollTop = 1e6;
+      buf += d; var m;
+      while ((m = buf.match(/^([\s\S]*?[.!?…:;])(\s+)/))) { dici(m[1]); buf = buf.slice(m[0].length); }
+    }
+    function evento(raw) {
+      var dati = ""; raw.split("\n").forEach(function (l) { if (l.indexOf("data:") === 0) dati += l.slice(5).trim(); });
+      if (!dati) return; var ev; try { ev = JSON.parse(dati); } catch (e) { return; }
+      if (ev.type === "content_block_start") {
+        var b = JSON.parse(JSON.stringify(ev.content_block)); b._json = "";
+        if (b.type === "text") { b.text = ""; nuovo = true; }
+        if (b.type === "server_tool_use") $("azione").textContent = "Ricerca in rete…";
+        blocchi[ev.index] = b;
+      } else if (ev.type === "content_block_delta") {
+        var c = blocchi[ev.index]; if (!c) return;
+        if (ev.delta.type === "text_delta") {
+          var d = ev.delta.text; c.text += d;
+          if (nuovo) { nuovo = false; if (tot && !/\s$/.test(tot) && !/^[\s.,;:!?)]/.test(d)) d = " " + d; }
+          testo(d);
+        } else if (ev.delta.type === "input_json_delta") c._json += ev.delta.partial_json;
+      } else if (ev.type === "content_block_stop") {
+        var s = blocchi[ev.index]; if (s && s.type === "tool_use") { try { s.input = s._json ? JSON.parse(s._json) : {}; } catch (e) { s.input = {}; } }
+      } else if (ev.type === "error") err = ev.error || { type: "api_error" };
+    }
+    fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": CONF.claude, "anthropic-version": "2023-06-01", "content-type": "application/json", "anthropic-dangerous-direct-browser-access": "true" },
+      body: JSON.stringify(body)
+    }).then(function (res) {
+      if (!res.ok) return res.json().then(function (j) { var e = (j && j.error) || {}; fine({ errore: e.type || ("http_" + res.status), dettaglio: e.message || "" }); }, function () { fine({ errore: "http_" + res.status }); });
+      var reader = res.body.getReader(), dec = new TextDecoder(), resto = "";
+      function leggiPezzo() {
+        return reader.read().then(function (r) {
+          if (r.done) {
+            if (resto.trim()) evento(resto);
+            if (buf.trim()) { dici(buf); buf = ""; }
+            svuota();
+            if (err) { fine({ errore: err.type || "api_error", dettaglio: err.message || "" }); return; }
+            fine({ content: blocchi.filter(Boolean).map(function (b) { var c = { type: b.type }; if (b.type === "text") c.text = b.text; if (b.type === "tool_use") { c.id = b.id; c.name = b.name; c.input = b.input || {}; } return c; }), testo: pulisci(tot).replace(/\s+/g, " ").trim() });
+            return;
+          }
+          resto += dec.decode(r.value, { stream: true });
+          var parti = resto.split("\n\n"); resto = parti.pop(); parti.forEach(evento);
+          return leggiPezzo();
+        });
       }
-    } else if (e.error !== "no-speech" && e.error !== "aborted") {
-      riga("r-ric", false, "Errore del riconoscimento: " + e.error);
+      return leggiPezzo();
+    }).catch(function (e) { fine({ errore: "rete", dettaglio: String((e && e.message) || e) }); });
+  });
+}
+
+// ---------------- azioni ----------------
+function cifre(n) { var s = String(n || "").replace(/[^\d+]/g, ""); if (s.indexOf("00") === 0) s = "+" + s.slice(2); return s; }
+function perWhatsapp(n) { var s = cifre(n); if (s.charAt(0) === "+") return s.slice(1); if (s.length === 10 && s.charAt(0) === "3") return "39" + s; return s; }
+function posizioneAttuale() {
+  return new Promise(function (fine) {
+    if (!navigator.geolocation) { fine("Posizione non disponibile."); return; }
+    navigator.geolocation.getCurrentPosition(function (p) {
+      fine("Latitudine " + p.coords.latitude.toFixed(4) + ", longitudine " + p.coords.longitude.toFixed(4) + " (precisione circa " + Math.round(p.coords.accuracy) + " metri).");
+    }, function (e) { fine("Posizione non disponibile: " + ((e && e.message) || "permesso negato") + "."); }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
+  });
+}
+function esegui(uso, az) {
+  var i = uso.input || {}, enc = function (v) { return encodeURIComponent(String(v || "")); };
+  function apri(u, etichetta) { if (!az.url) az.url = u; az.registro.push(etichetta); }
+  switch (uso.name) {
+    case "naviga": {
+      var modo = { auto: "driving", piedi: "walking", mezzi: "transit" }[i.mezzo] || "driving";
+      apri(NAVIGATORE === "apple" ? "maps://?daddr=" + enc(i.destinazione) + "&dirflg=" + ({ driving: "d", walking: "w", transit: "r" }[modo])
+        : "comgooglemaps://?daddr=" + enc(i.destinazione) + "&directionsmode=" + modo, "Rotta: " + i.destinazione);
+      return Promise.resolve("Navigatore aperto.");
     }
-  };
-  r.onend = function () {
-    clearTimeout(silenzio);
-    stato.ascolta = false;
-    if (!partito) return;
-    if (testo) {
-      stato.frasi++;
-      riga("r-ric", true, "Ha capito: “" + testo + "”.");
-      if (stato.frasi >= 2) riga("r-seg", true, "Ha ascoltato la seconda frase senza tocchi.");
-      rispondi(testo);
-    } else {
-      modo("", "Non ho sentito nulla");
-      $("avvia").className = "avvia on"; $("avvia").textContent = "Tocca per riprovare";
+    case "cerca_luogo": apri(NAVIGATORE === "apple" ? "maps://?q=" + enc(i.ricerca) : "comgooglemaps://?q=" + enc(i.ricerca), "Mappa: " + i.ricerca); return Promise.resolve("Mappa aperta.");
+    case "apri_app": { var sc = APP[String(i.app || "").toLowerCase()]; if (!sc) return Promise.resolve("App non disponibile."); apri(sc, "Apro " + i.app); return Promise.resolve("App aperta."); }
+    case "apri_sito": { var u = String(i.url || "").trim(); if (!/^https?:\/\//i.test(u)) u = "https://" + u; apri(u, "Sito"); return Promise.resolve("Sito aperto."); }
+    case "cerca_web": apri("https://www.google.com/search?q=" + enc(i.query), "Ricerca: " + i.query); return Promise.resolve("Ricerca aperta.");
+    case "youtube": apri("https://www.youtube.com/results?search_query=" + enc(i.ricerca), "YouTube: " + i.ricerca); return Promise.resolve("YouTube aperto.");
+    case "musica": apri("spotify:search:" + enc(i.ricerca), "Spotify: " + i.ricerca); return Promise.resolve("Spotify aperto.");
+    case "chiama": if (!cifre(i.numero)) return Promise.resolve("Numero mancante."); apri("tel:" + cifre(i.numero), "Chiamata"); return Promise.resolve("Chiamata avviata.");
+    case "sms": if (!cifre(i.numero)) return Promise.resolve("Numero mancante."); apri("sms:" + cifre(i.numero) + "&body=" + enc(i.testo), "SMS"); return Promise.resolve("SMS preparato.");
+    case "whatsapp": if (!cifre(i.numero)) return Promise.resolve("Numero mancante."); apri("https://wa.me/" + perWhatsapp(i.numero) + "?text=" + enc(i.testo), "WhatsApp"); return Promise.resolve("Messaggio preparato.");
+    case "email": apri("mailto:" + String(i.indirizzo || "") + "?subject=" + enc(i.oggetto) + "&body=" + enc(i.testo), "Email"); return Promise.resolve("Email preparata.");
+    case "esegui_comando_rapido": {
+      var url = "shortcuts://run-shortcut?name=" + enc(i.nome); if (i.input) url += "&input=text&text=" + enc(i.input);
+      apri(url, "Comando rapido: " + i.nome); return Promise.resolve("Comando rapido avviato.");
     }
-    verdetto();
-  };
-  try { r.start(); }
-  catch (e) {
-    if (!daTocco) {
-      stato.autoOk = false;
-      riga("r-auto", false, "Safari non permette di iniziare ad ascoltare senza un tocco.");
-      $("avvia").className = "avvia on"; modo("", "Tocca per avviare");
+    case "note": {
+      if (i.azione === "leggi") return Promise.resolve((MEM.note || "").trim() ? MEM.note.slice(-4000) : "Il taccuino è vuoto.");
+      if (i.azione === "svuota") { MEM.note = ""; salvaMem(); az.registro.push("Note svuotate"); return Promise.resolve("Taccuino svuotato."); }
+      var t = String(i.testo || "").trim(); if (!t) return Promise.resolve("Testo mancante.");
+      if (sembraSegreto(t)) { az.problemi.push("Questo non lo annoto: sembra un dato riservato."); return Promise.resolve("Non salvato."); }
+      MEM.note = (MEM.note || "") + "- [" + oraLocale(new Date()).replace("T", " ") + "] " + t + "\n"; salvaMem(); az.registro.push("Nota salvata");
+      return Promise.resolve("Nota salvata.");
+    }
+    case "posizione": return posizioneAttuale();
+    case "ricorda": {
+      var f = String(i.fatto || "").trim().slice(0, 400); if (!f) return Promise.resolve("Niente da salvare.");
+      if (sembraSegreto(f)) { az.problemi.push("Questo non lo salvo: sembra un dato riservato."); return Promise.resolve("Non salvato."); }
+      if (MEM.fatti.some(function (x) { return normale(x.testo) === normale(f); })) return Promise.resolve("Già in memoria.");
+      var max = MEM.fatti.reduce(function (m, x) { return Math.max(m, parseInt(String(x.id).slice(1), 10) || 0); }, 0);
+      MEM.fatti.push({ id: "f" + (max + 1), testo: f, data: oraLocale(new Date()) }); if (MEM.fatti.length > 300) MEM.fatti = MEM.fatti.slice(-300);
+      salvaMem(); az.registro.push("Memorizzato"); return Promise.resolve("Salvato in memoria.");
+    }
+    case "dimentica": {
+      var prima = MEM.fatti.length; MEM.fatti = MEM.fatti.filter(function (x) { return x.id !== String(i.id); });
+      if (MEM.fatti.length < prima) { salvaMem(); az.registro.push("Dimenticato"); return Promise.resolve("Cancellato."); }
+      return Promise.resolve("Id non trovato.");
     }
   }
+  return Promise.resolve("Strumento sconosciuto.");
 }
 
-// ----- risposta: prova i tre modi di emettere suono -----
-function creaTono() {
-  var sr = 22050, dur = 0.45, n = Math.floor(sr * dur), buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
-  function str(o, t) { for (var i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); }
-  str(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); str(8, "WAVE"); str(12, "fmt ");
-  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
-  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
-  str(36, "data"); v.setUint32(40, n * 2, true);
-  for (var i = 0; i < n; i++) {
-    var t = i / sr, inv = Math.min(1, t / 0.02, (dur - t) / 0.08);
-    var s = Math.sin(2 * Math.PI * 660 * t) * 0.5 + Math.sin(2 * Math.PI * 990 * t) * 0.25;
-    v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, s * inv * 0.6)) * 32767, true);
+// ---------------- una richiesta completa (con eventuali giri di strumenti) ----------------
+var ERRORI = {
+  rete: "Al momento non riesco a collegarmi a internet.",
+  authentication_error: "La chiave di Claude non è valida. Controllala nelle impostazioni.",
+  rate_limit_error: "Ho ricevuto molte richieste ravvicinate. Riprova tra qualche istante.",
+  overloaded_error: "I server sono molto occupati. Riprova tra qualche istante.",
+  not_found_error: "Il modello impostato non è disponibile."
+};
+async function rispondi(richiesta) {
+  $("tu").textContent = "« " + richiesta + " »"; $("azione").textContent = "";
+  var ricerca = !MEM.ricercaNo, extra = [], az = { url: null, registro: [], problemi: [] }, detto = "", avviso = "";
+  for (var giro = 0; giro < 4; giro++) {
+    var r = await chiedi(corpo(richiesta, ricerca, extra));
+    if (r.errore && ricerca && r.errore !== "rete" && r.errore !== "authentication_error") {
+      var r2 = await chiedi(corpo(richiesta, false, extra));
+      if (!r2.errore) { MEM.ricercaNo = true; ricerca = false; avviso = "Nota: la ricerca su internet non è attiva. Abilitala nella Console di Claude."; }
+      r = r2;
+    }
+    if (r.errore) {
+      var frase = ERRORI[r.errore] || (/credit|balance|billing/i.test(r.dettaglio || "") ? "Il credito di Claude è finito. Ricaricalo dalla Console." : "Qualcosa non è andato come previsto. Riprova.");
+      $("risposta").textContent = frase; if (r.dettaglio) $("azione").textContent = String(r.dettaglio).slice(0, 140);
+      await diciTutto(frase); return {};
+    }
+    if (r.testo) detto = detto ? detto + " " + r.testo : r.testo;
+    var usi = r.content.filter(function (b) { return b.type === "tool_use"; }), risultati = [];
+    for (var k = 0; k < usi.length; k++) {
+      var esito; try { esito = await esegui(usi[k], az); } catch (e) { esito = "Non riuscito: " + ((e && e.message) || "errore"); }
+      risultati.push({ type: "tool_result", tool_use_id: usi[k].id, content: String(esito || "ok").slice(0, 6000) });
+    }
+    if (az.registro.length) $("azione").textContent = az.registro.join("  ·  ");
+    var serve = usi.some(function (u) { return LETTURA.indexOf(u.name) >= 0 || (u.name === "note" && (u.input || {}).azione === "leggi"); });
+    if (!serve || az.url) break;
+    extra.push({ role: "assistant", content: r.content.filter(function (b) { return (b.type === "text" && b.text && b.text.trim()) || b.type === "tool_use"; }).map(function (b) { return b.type === "text" ? { type: "text", text: b.text } : { type: "tool_use", id: b.id, name: b.name, input: b.input || {} }; }) });
+    extra.push({ role: "user", content: risultati });
   }
-  return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
-}
-var urlTono = null, lettore = null;
-function provaAudio() {
-  return new Promise(function (fine) {
-    try {
-      if (!urlTono) urlTono = creaTono();
-      if (!lettore) lettore = new Audio();
-      lettore.src = urlTono;
-      var p = lettore.play();
-      if (p && p.then) p.then(function () {
-        riga("r-audio", true, "Il suono è partito da solo: la voce ElevenLabs potrà parlare senza tocchi.");
-        lettore.onended = function () { fine(true); };
-        setTimeout(function () { fine(true); }, 1500);
-      }, function (e) {
-        riga("r-audio", false, "Bloccato da Safari (" + ((e && e.name) || "errore") + ").");
-        fine(false);
-      });
-      else { riga("r-audio", null, "Risultato non chiaro."); fine(false); }
-    } catch (e) { riga("r-audio", false, "Errore: " + e.message); fine(false); }
-  });
-}
-function provaAudioWeb() {
-  return new Promise(function (fine) {
-    try {
-      var ctx = audio.ctx;
-      if (!ctx) { riga("r-web", false, "Non disponibile."); fine(false); return; }
-      if (ctx.state !== "running") { riga("r-web", false, "Fermo finché non tocchi lo schermo (" + ctx.state + ")."); fine(false); return; }
-      var o = ctx.createOscillator(), g = ctx.createGain();
-      o.frequency.value = 880; g.gain.value = 0.0001;
-      o.connect(g); g.connect(ctx.destination);
-      var t = ctx.currentTime;
-      g.gain.exponentialRampToValueAtTime(0.25, t + 0.03);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
-      o.start(t); o.stop(t + 0.4);
-      riga("r-web", true, "Funziona anche senza tocchi.");
-      setTimeout(function () { fine(true); }, 500);
-    } catch (e) { riga("r-web", false, "Errore: " + e.message); fine(false); }
-  });
-}
-function provaVoce(frase) {
-  return new Promise(function (fine) {
-    if (!("speechSynthesis" in window)) { riga("r-voce", false, "Non disponibile."); fine(false); return; }
-    var u = new SpeechSynthesisUtterance(frase), partita = false;
-    u.lang = "it-IT";
-    u.onstart = function () { partita = true; modo("parla", "Risposta"); };
-    u.onend = function () { riga("r-voce", true, "Ha parlato da solo."); fine(true); };
-    speechSynthesis.cancel(); speechSynthesis.speak(u);
-    setTimeout(function () { if (!partita) { riga("r-voce", false, "Non parte senza un tocco (non ci serve: useremo ElevenLabs)."); fine(false); } }, 2500);
-  });
-}
-function rispondi(testo) {
-  modo("parla", "Risposta");
-  var frase = stato.frasi >= 2 ? "Perfetto, anche la conversazione continua funziona." : "Ti ho sentito. Ora dimmi un'altra frase.";
-  provaAudio().then(function (ok) {
-    stato.voceOk = ok;
-    return provaAudioWeb();
-  }).then(function () {
-    return provaVoce(frase);
-  }).then(function () {
-    verdetto();
-    if (stato.frasi < 2) setTimeout(function () { ascolta(false); }, 300);
-    else modo("", "Prova completata");
-  });
+  var aggiunte = az.problemi.concat(avviso ? [avviso] : []).join(" ");
+  if (!detto && !aggiunte) { detto = (az.url || az.registro.length) ? "Fatto." : "Non ho una risposta."; $("risposta").textContent = detto; await diciTutto(detto); }
+  if (aggiunte) { $("risposta").textContent += " " + aggiunte; await fineVoce(); await diciTutto(aggiunte); }
+  var t = Date.now();
+  MEM.storia.push({ role: "user", content: richiesta, t: t });
+  MEM.storia.push({ role: "assistant", content: [detto, aggiunte].filter(Boolean).join(" ") + (az.registro.length ? " [azioni: " + az.registro.join("; ") + "]" : ""), t: t });
+  MEM.storia = MEM.storia.slice(-MAX_STORIA * 2); salvaMem();
+  return { url: az.url };
 }
 
-// ----- avvio automatico -----
-function avvio() {
-  modo("", "Avvio");
-  controllaPermesso().then(function (p) {
-    stato.permessoIniziale = p;
-    return ottieniMicrofono().then(function (st) {
-      avviaMisuratore(st);
-      if (p === "granted") riga("r-perm", true, "Già consentito: nessuna richiesta all’apertura.");
-      else if (p === "prompt") riga("r-perm", null, "Concesso ora, ma Safari lo ha chiesto. Rendilo permanente (vedi sotto) e riapri.");
-      else riga("r-perm", true, "Microfono attivo (Safari non dice se lo chiederà di nuovo: riapri la pagina e guarda).");
-    }, function (e) {
-      riga("r-perm", false, e && e.message === "nonsupportato" ? "Il microfono non è disponibile in questo browser." : "Permesso negato: impostalo su Consenti (vedi sotto).");
-    });
-  }).then(function () { ascolta(false); });
+// ---------------- ciclo principale ----------------
+var CICLO = { tocco: null, inCorso: false };
+function attendiTocco(msg) {
+  stato("pronto", msg || "Pronto"); $("hint").textContent = "Tocca il reattore per parlare";
+  return new Promise(function (r) { CICLO.tocco = r; });
 }
+async function ciclo(primoAvvio) {
+  if (CICLO.inCorso) return; CICLO.inCorso = true;
+  var micOk = await preparaAudio();
+  if (primoAvvio && CONF.saluto !== "no" && voceAttiva()) {
+    var h = new Date().getHours();
+    var s = h >= 5 && h < 12 ? "Buongiorno." : h >= 12 && h < 18 ? "Buon pomeriggio." : "Buonasera.";
+    $("risposta").textContent = s + " Dimmi pure."; await diciTutto(s + " Dimmi pure.");
+  }
+  var modo = "primo";
+  while (true) {
+    var richiesta;
+    if (modo === "tocco") await attendiTocco();
+    await fineVoce();
+    richiesta = SR ? await ascolta(modo === "seguito" ? 7000 : 9000) : null;
+    if (richiesta === null) richiesta = await scriviRichiesta();
+    if (!richiesta) { modo = "tocco"; $("tu").textContent = ""; continue; }
+    var esito = await rispondi(richiesta);
+    if (esito.url) { await fineVoce(); window.location.href = esito.url; modo = "tocco"; continue; }
+    modo = "seguito";
+  }
+}
+$("reactor").onclick = function () {
+  if (V.suona || V.coda.length) { fermaVoce(); stato("pronto", "Pronto"); return; }
+  if (ASC.attivo && ASC.ferma) { ASC.ferma(); return; }
+  if (AU.ctx && AU.ctx.state !== "running" && AU.ctx.resume) AU.ctx.resume();
+  if (CICLO.tocco) { var f = CICLO.tocco; CICLO.tocco = null; $("hint").textContent = ""; f(); }
+};
+$("reactor").onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("reactor").onclick(); } };
 
-$("avvia").onclick = function () { ascolta(true); };
-$("reactor").onclick = function () { if (!stato.ascolta) ascolta(true); };
-$("reactor").onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!stato.ascolta) ascolta(true); } };
-avvio();
+// ---------------- impostazioni ----------------
+function apriImpostazioni() {
+  var c = CONF || {};
+  $("kClaude").value = c.claude || ""; $("kEleven").value = c.eleven || "";
+  $("sVoce").value = c.voce || "JBFqnCBsd6RMkjVDRZzb"; $("sModalita").value = c.modalita || "intelligente";
+  $("sForma").value = c.forma || "tu"; $("sSaluto").value = c.saluto || "si";
+  $("errImp").textContent = ""; $("pannello").className = "pannello on";
+}
+$("apriImpostazioni").onclick = apriImpostazioni;
+$("chiudiImp").onclick = function () { if (CONF) $("pannello").className = "pannello"; };
+$("cancellaMem").onclick = function () {
+  if (!confirm("Cancellare tutta la memoria di Jarvis su questo dispositivo?")) return;
+  MEM = { fatti: [], storia: [], note: "" }; salvaMem(); $("errImp").textContent = "Memoria cancellata.";
+};
+$("formImp").onsubmit = function (e) {
+  e.preventDefault();
+  var k = $("kClaude").value.trim();
+  if (k.indexOf("sk-ant-") !== 0) { $("errImp").textContent = "La chiave di Claude deve iniziare con sk-ant-."; return; }
+  var primo = !CONF;
+  CONF = { claude: k, eleven: $("kEleven").value.trim(), voce: $("sVoce").value, modalita: $("sModalita").value, forma: $("sForma").value, saluto: $("sSaluto").value };
+  scrivi("jarvis.conf", CONF); V.errore = ""; aggiornaInfo();
+  $("pannello").className = "pannello";
+  // il tocco su "Salva" sblocca anche l'audio
+  var AC = window.AudioContext || window.webkitAudioContext;
+  try { if (!AU.ctx && AC) AU.ctx = new AC(); if (AU.ctx.state !== "running") AU.ctx.resume(); } catch (err) {}
+  if (primo) ciclo(true);
+};
+
+// ---------------- avvio ----------------
+aggiornaInfo();
+if (!CONF) { stato("pronto", "Configurazione"); apriImpostazioni(); }
+else ciclo(true);
 </script>
 </body>
 </html>
